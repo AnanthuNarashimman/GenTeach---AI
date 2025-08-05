@@ -1,0 +1,101 @@
+.chat-action-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    padding: 35px;
+    width: 85%;
+    margin: auto;
+    margin-top: 12%;
+    border-radius: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 4%;
+}
+
+.chat-action-card .textarea {
+    width: 50%;
+}
+
+.textarea h1 {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 25%, #a855f7 75%, #e879f9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-family: 'Poppins';
+    font-size: 40px;
+    margin-bottom: 20px;
+}
+
+.textarea p {
+    color: aliceblue;
+    font-size: 20px;
+    font-family: 'Figtree';
+    font-weight: 400;
+    margin-bottom: 25px;
+}
+
+.textarea button {
+   background: linear-gradient(135deg, #7877c6 0%, #ff6b6b 50%, #48bb78 100%);
+   color: rgb(255, 255, 255);
+   text-shadow: rgba(255, 255, 255, 0.8) 0px 0px 30px;
+   color: #fff;
+   padding: 15px;
+   border-radius: 25px 30px;
+   font-family: 'Figtree';
+   font-weight: 600;
+   font-size: 20px;
+   border: none;
+   cursor: pointer;
+   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+   position: relative;
+   overflow: hidden;
+}
+
+.textarea button::before {
+   content: '';
+   position: absolute;
+   top: 0;
+   left: -100%;
+   width: 100%;
+   height: 100%;
+   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+   transition: left 0.5s;
+}
+
+.textarea button:hover {
+   transform: translateY(-5px);
+   background: linear-gradient(135deg, #9493e0 0%, #ff8585 50%, #66d89a 100%);
+   box-shadow: 0 15px 40px rgba(120, 119, 198, 0.5), 0 0 20px rgba(255, 107, 107, 0.3);
+}
+
+.textarea button:hover::before {
+   left: 100%;
+}
+
+.textarea button:active {
+   transform: translateY(-2px);
+}
+
+.chat-action-card .imgarea {
+    width: 50%;
+}
+
+.chat-action-card .imgarea img {
+    width: 80%;
+}
+
+.collection-card-area {
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.collection-head {
+    color: #6c63ff;
+    font-size: 45px;
+    margin-left: 43%;
+    margin-top: 7%;
+    margin-bottom: 2%;
+}
