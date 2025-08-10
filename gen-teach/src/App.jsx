@@ -12,7 +12,7 @@ import CollectionPage from "./Pages/CollectionPage";
 import ScriptGallery from "./Pages/ScriptGallery";
 import ManageUsersPage from "./Pages/ManageUsersPage";
 import ApprovalPage from "./Pages/ApprovalPage";
-import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute from "./Components/ProtectedRoute";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
 import PublicRoute from "./components/PublicRoute";
 import { AuthProvider } from "./contexts/AuthContext";
