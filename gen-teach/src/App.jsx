@@ -13,8 +13,8 @@ import ScriptGallery from "./Pages/ScriptGallery";
 import ManageUsersPage from "./Pages/ManageUsersPage";
 import ApprovalPage from "./Pages/ApprovalPage";
 import ProtectedRoute from "./Components/ProtectedRoute";
-import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
-import PublicRoute from "./components/PublicRoute";
+import ProtectedAdminRoute from "./Components/ProtectedAdminRoute";
+import PublicRoute from "./Components/PublicRoute";
 import { AuthProvider } from "./contexts/AuthContext";
 import './App.css';
 
