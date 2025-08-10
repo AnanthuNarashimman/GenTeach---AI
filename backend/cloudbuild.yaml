@@ -1,18 +1,19 @@
-# FINAL CLOUDBUILD.YAML
-# This file defines the automated steps for building and deploying your application.
+# Place this file at: backend/cloudbuild.yaml
 
 steps:
-  # Step 1: Build the container image
-  # This builds the image using your Dockerfile and tags it with the unique Git commit ID (SHORT_SHA) for precise versioning.
+  # Step 1: Build the container image from the 'backend' directory
   - name: 'gcr.io/cloud-builders/docker'
+    # This line tells Cloud Build to run the command inside the 'backend' folder
+    dir: 'backend'
     args: ['build', '-t', 'gcr.io/${PROJECT_ID}/video-generator:${SHORT_SHA}', '.']
 
-  # Step 2: Push the new image to Google's Artifact Registry
-  # This makes the newly built image available for Cloud Run to use.
+  # Step 2: Push the new image
   - name: 'gcr.io/cloud-builders/docker'
+    # The push command does not need the dir, but it's good practice for consistency
+    dir: 'backend'
     args: ['push', 'gcr.io/${PROJECT_ID}/video-generator:${SHORT_SHA}']
 
-  # Step 3: Deploy the new image version to Cloud Run with all configurations
+  # Step 3: Deploy to Cloud Run (this step doesn't need a directory change)
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -24,7 +25,7 @@ steps:
       - '--platform'
       - 'managed'
       - '--region'
-      - 'us-central1' # IMPORTANT: Confirm this is your correct region
+      - 'us-central1'
       - '--allow-unauthenticated'
       - '--service-account'
       - 'video-generator-sa@${PROJECT_ID}.iam.gserviceaccount.com'
@@ -34,12 +35,8 @@ steps:
       - '8Gi'
       - '--timeout'
       - '3600'
-      # Mounts all your secrets securely as environment variables.
-      # Format: ENV_VAR_YOUR_APP_NEEDS=secret-name-in-cloud:version
       - '--update-secrets=GOOGLE_APPLICATION_CREDENTIALS_JSON=google-creds-json:latest,FIREBASE_CREDENTIALS_JSON=firebase-creds-json:latest,GEMINI_API_KEY=gemini-api-key:latest,FLASK_SECRET_KEY=flask-secret-key:latest'
-      # Sets all your non-secret configuration variables.
       - '--set-env-vars=GCP_PROJECT_ID=${PROJECT_ID},FIREBASE_STORAGE_BUCKET=genteach-5c341.firebasestorage.app'
 
-# Specifies the final image to be stored in the build artifacts for traceability.
 images:
   - 'gcr.io/${PROJECT_ID}/video-generator:${SHORT_SHA}'
