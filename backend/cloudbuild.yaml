@@ -1,26 +1,30 @@
-# Defines the automated steps for Cloud Build
+# FINAL CLOUDBUILD.YAML
+# This file defines the automated steps for building and deploying your application.
+
 steps:
-  # 1. Build the container image, tagging with the unique commit ID (SHORT_SHA) for versioning
+  # Step 1: Build the container image
+  # This builds the image using your Dockerfile and tags it with the unique Git commit ID (SHORT_SHA) for precise versioning.
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'gcr.io/${PROJECT_ID}/video-generator:${SHORT_SHA}', '.']
 
-  # 2. Push the new image to Google's Artifact Registry
+  # Step 2: Push the new image to Google's Artifact Registry
+  # This makes the newly built image available for Cloud Run to use.
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/${PROJECT_ID}/video-generator:${SHORT_SHA}']
 
-  # 3. Deploy the new image version to Cloud Run
+  # Step 3: Deploy the new image version to Cloud Run with all configurations
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
       - 'run'
       - 'deploy'
-      - 'video-generator-service' # This is your service name
+      - 'video-generator-service'
       - '--image'
       - 'gcr.io/${PROJECT_ID}/video-generator:${SHORT_SHA}'
       - '--platform'
       - 'managed'
       - '--region'
-      - 'us-central1' # IMPORTANT: Make sure this is your correct region
+      - 'us-central1' # IMPORTANT: Confirm this is your correct region
       - '--allow-unauthenticated'
       - '--service-account'
       - 'video-generator-sa@${PROJECT_ID}.iam.gserviceaccount.com'
@@ -30,10 +34,12 @@ steps:
       - '8Gi'
       - '--timeout'
       - '3600'
-      # Mount all secrets securely as environment variables
-      - '--update-secrets=GOOGLE_APPLICATION_CREDENTIALS_JSON=google-creds-json:latest,GEMINI_API_KEY=gemini-api-key:latest,FLASK_SECRET_KEY=flask-secret-key:latest'
-      - '--set-env-vars=GCP_PROJECT_ID=${PROJECT_ID}'
+      # Mounts all your secrets securely as environment variables.
+      # Format: ENV_VAR_YOUR_APP_NEEDS=secret-name-in-cloud:version
+      - '--update-secrets=GOOGLE_APPLICATION_CREDENTIALS_JSON=google-creds-json:latest,FIREBASE_CREDENTIALS_JSON=firebase-creds-json:latest,GEMINI_API_KEY=gemini-api-key:latest,FLASK_SECRET_KEY=flask-secret-key:latest'
+      # Sets all your non-secret configuration variables.
+      - '--set-env-vars=GCP_PROJECT_ID=${PROJECT_ID},FIREBASE_STORAGE_BUCKET=genteach-5c341.firebasestorage.app'
 
-# Make the final image available to other Cloud Build steps if needed
+# Specifies the final image to be stored in the build artifacts for traceability.
 images:
   - 'gcr.io/${PROJECT_ID}/video-generator:${SHORT_SHA}'
