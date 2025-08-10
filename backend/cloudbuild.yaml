@@ -1,0 +1,39 @@
+# Defines the automated steps for Cloud Build
+steps:
+  # 1. Build the container image, tagging with the unique commit ID (SHORT_SHA) for versioning
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/${PROJECT_ID}/video-generator:${SHORT_SHA}', '.']
+
+  # 2. Push the new image to Google's Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/${PROJECT_ID}/video-generator:${SHORT_SHA}']
+
+  # 3. Deploy the new image version to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'video-generator-service' # This is your service name
+      - '--image'
+      - 'gcr.io/${PROJECT_ID}/video-generator:${SHORT_SHA}'
+      - '--platform'
+      - 'managed'
+      - '--region'
+      - 'us-central1' # IMPORTANT: Make sure this is your correct region
+      - '--allow-unauthenticated'
+      - '--service-account'
+      - 'video-generator-sa@${PROJECT_ID}.iam.gserviceaccount.com'
+      - '--cpu'
+      - '4'
+      - '--memory'
+      - '8Gi'
+      - '--timeout'
+      - '3600'
+      # Mount all secrets securely as environment variables
+      - '--update-secrets=GOOGLE_APPLICATION_CREDENTIALS_JSON=google-creds-json:latest,GEMINI_API_KEY=gemini-api-key:latest,FLASK_SECRET_KEY=flask-secret-key:latest'
+      - '--set-env-vars=GCP_PROJECT_ID=${PROJECT_ID}'
+
+# Make the final image available to other Cloud Build steps if needed
+images:
+  - 'gcr.io/${PROJECT_ID}/video-generator:${SHORT_SHA}'

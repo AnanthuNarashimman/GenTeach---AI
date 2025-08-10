@@ -95,7 +95,7 @@ CORS(app,
      allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
      expose_headers=["Content-Type"],
-     resources={r"/*": {"origins": "http://localhost:5173"}})
+     resources={r"/*": {"origins": "https://gen-teach-ai-kd7v.vercel.app"}})
 
 # Gemini API Configuration
 gemini_api_key = os.getenv('GEMINI_API_KEY')
