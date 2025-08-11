@@ -10,11 +10,18 @@ function ChatPage() {
     const [messages, setMessages] = useState([]);
     const [inputText, setInputText] = useState('');
     const [isTyping, setIsTyping] = useState(false);
-    const [quizStates, setQuizStates] = useState({}); // Track quiz states for each message
+    const [quizStates, setQuizStates] = useState({});
     const [showCloseModal, setShowCloseModal] = useState(false);
+    const [isDiscarding, setIsDiscarding] = useState(false); // Track if chat is being discarded
     const messagesEndRef = useRef(null);
 
     async function sendMessage(messageText = inputText) {
+        // Don't send messages if chat is being discarded
+        if (isDiscarding) {
+            console.log('Chat is being discarded, ignoring message send');
+            return;
+        }
+
         try {
             const response = await axios.post('https://video-generator-service-lzshkotpba-uc.a.run.app/chat', {'message': messageText},
                 {withCredentials: true}
@@ -55,28 +62,44 @@ function ChatPage() {
                 // Replace generating message with final response if it exists
                 setMessages(prev => {
                     const updatedMessages = [...prev];
-                    const generatingIndex = updatedMessages.findIndex(msg => 
-                        msg.action === 'audio_generating' || 
-                        msg.action === 'video_generating' || 
+                    const generatingIndex = updatedMessages.findIndex(msg =>
+                        msg.action === 'audio_generating' ||
+                        msg.action === 'video_generating' ||
                         msg.action === 'both_generating'
                     );
-                    
+
                     console.log('Looking for generating message, found at index:', generatingIndex);
                     console.log('Current messages:', updatedMessages.map(m => ({ id: m.id, action: m.action })));
-                    
+
                     if (generatingIndex !== -1) {
                         // Add a minimum delay before replacing the generating message
                         setTimeout(() => {
+                            // Check if chat is being discarded before updating
+                            if (isDiscarding) {
+                                console.log('Chat is being discarded, skipping message replacement');
+                                return;
+                            }
+
                             console.log('Replacing generating message with final response after delay');
                             setMessages(currentMessages => {
+                                // Double-check if discarding during state update
+                                if (isDiscarding) {
+                                    console.log('Chat discarded during message update, keeping current state');
+                                    return currentMessages;
+                                }
+
                                 const newMessages = [...currentMessages];
-                                const newGeneratingIndex = newMessages.findIndex(msg => 
-                                    msg.action === 'audio_generating' || 
-                                    msg.action === 'video_generating' || 
+                                const newGeneratingIndex = newMessages.findIndex(msg =>
+                                    msg.action === 'audio_generating' ||
+                                    msg.action === 'video_generating' ||
                                     msg.action === 'both_generating'
                                 );
                                 if (newGeneratingIndex !== -1) {
                                     newMessages[newGeneratingIndex] = botResponse;
+                                } else {
+                                    // If generating message was removed (e.g., by discard), just add the response
+                                    console.log('Generating message no longer exists, adding response as new message');
+                                    newMessages.push(botResponse);
                                 }
                                 return newMessages;
                             });
@@ -86,7 +109,7 @@ function ChatPage() {
                         console.log('No generating message found, adding new message');
                         updatedMessages.push(botResponse);
                     }
-                    
+
                     return updatedMessages;
                 });
                 
@@ -331,29 +354,58 @@ function ChatPage() {
         setShowCloseModal(true);
     };
 
-    const handleDiscardChat = () => {
+    const handleDiscardChat = async () => {
         try {
+            console.log('Starting chat discard process...');
+
+            // Set discarding flag to prevent new messages
+            setIsDiscarding(true);
+
+            // First clear backend session to ensure proper state reset
+            try {
+                await axios.get('https://video-generator-service-lzshkotpba-uc.a.run.app/sessionclear', {
+                    withCredentials: true,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    timeout: 5000 // 5 second timeout
+                });
+                console.log('Backend session cleared successfully');
+            } catch (backendError) {
+                console.log('Backend session clear failed (continuing anyway):', backendError.message);
+                // Continue with frontend cleanup even if backend fails
+            }
+
+            // Clear all frontend state
+            localStorage.removeItem('chatMessages');
+            localStorage.removeItem('quizStates');
+
+            // Reset all component state to initial values
+            setMessages([{ ...defaultMessage, timestamp: new Date() }]);
+            setQuizStates({});
+            setIsTyping(false); // Reset typing state
+            setInputText(''); // Clear input text
+            setShowCloseModal(false);
+            setIsDiscarding(false); // Reset discarding flag
+
+            console.log('Frontend state cleared successfully');
+
+            // Navigate to home after cleanup is complete
+            navigate('/home');
+        } catch (error) {
+            console.error('Error during chat discard:', error);
+
+            // Even if there's an error, ensure frontend state is cleared
             localStorage.removeItem('chatMessages');
             localStorage.removeItem('quizStates');
             setMessages([{ ...defaultMessage, timestamp: new Date() }]);
             setQuizStates({});
+            setIsTyping(false);
+            setInputText('');
             setShowCloseModal(false);
-            
-            // Clear backend session with error handling
-            axios.get('https://video-generator-service-lzshkotpba-uc.a.run.app/sessionclear', {
-                withCredentials: true,
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            }).catch(error => {
-                console.log('Backend session clear failed (this is okay):', error.message);
-                // Continue with navigation even if backend clear fails
-            });
-            
-            navigate('/home');
-        } catch (error) {
-            console.error('Error clearing chat history:', error);
-            // Still navigate even if there's an error
+            setIsDiscarding(false); // Reset discarding flag
+
+            // Still navigate to prevent user from being stuck
             navigate('/home');
         }
     };

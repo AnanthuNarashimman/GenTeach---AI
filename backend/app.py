@@ -2136,7 +2136,6 @@ def check_session():
                 user_doc = next(user_query, None)
 
                 if user_doc is None:
-                    # User no longer exists, clear session
                     session.clear()
                     session.modified = True
                     return jsonify({
