@@ -24,6 +24,11 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
+# === Stage 3.5: Configure ImageMagick Security Policy ===
+# MoviePy requires ImageMagick to process text and images, but ImageMagick's
+# default security policy blocks many operations. We need to modify it.
+RUN sed -i 's/<policy domain="path" rights="none" pattern="@\*"/<policy domain="path" rights="read|write" pattern="@*"/' /etc/ImageMagick-6/policy.xml
+
 # === Stage 4: Install Python Dependencies ===
 # First, copy only the requirements.txt file. This is a key Docker optimization.
 # If this file doesn't change, Docker can reuse the cached layer from a previous
