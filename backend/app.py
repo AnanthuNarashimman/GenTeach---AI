@@ -99,7 +99,8 @@ CORS(app,
      resources={r"/*": {"origins": "https://gen-teach-ai-kd7v.vercel.app"}})
 
 # Gemini API Configuration
-gemini_api_key = os.getenv('GEMINI_API_KEY')
+gemini_api_key = os.getenv('GEMINI_API_KEY').strip()
+print(gemini_api_key)
 if not gemini_api_key:
     raise ValueError("GEMINI_API_KEY environment variable not set. Please add it to your .env file.")
 genai.configure(api_key=gemini_api_key)
