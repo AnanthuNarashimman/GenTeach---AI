@@ -25,13 +25,13 @@ export const AuthProvider = ({ children }) => {
   const checkAuthStatus = async () => {
     try {
       // First check session status
-      const sessionResponse = await axios.get('http://localhost:5000/session/check', {
+      const sessionResponse = await axios.get('https://video-generator-service-lzshkotpba-uc.a.run.app/session/check', {
         withCredentials: true
       });
       
       if (sessionResponse.data.authenticated) {
         // Session is valid, get user profile
-        const profileResponse = await axios.get('http://localhost:5000/profile_fetch', {
+        const profileResponse = await axios.get('https://video-generator-service-lzshkotpba-uc.a.run.app/profile_fetch', {
           withCredentials: true
         });
         
@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }) => {
           });
           
           // Check admin status
-          const adminResponse = await axios.get('http://localhost:5000/admin/check_admin', {
+          const adminResponse = await axios.get('https://video-generator-service-lzshkotpba-uc.a.run.app/admin/check_admin', {
             withCredentials: true
           });
           
@@ -72,12 +72,12 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      const response = await axios.post('http://localhost:5000/login', credentials, {
+      const response = await axios.post('https://video-generator-service-lzshkotpba-uc.a.run.app/login', credentials, {
         withCredentials: true
       });
       
       if (response.data.logged) {
-        const profileResponse = await axios.get('http://localhost:5000/profile_fetch', {
+        const profileResponse = await axios.get('https://video-generator-service-lzshkotpba-uc.a.run.app/profile_fetch', {
           withCredentials: true
         });
         
@@ -88,7 +88,7 @@ export const AuthProvider = ({ children }) => {
         });
         
         // Check admin status after login
-        const adminResponse = await axios.get('http://localhost:5000/admin/check_admin', {
+        const adminResponse = await axios.get('https://video-generator-service-lzshkotpba-uc.a.run.app/admin/check_admin', {
           withCredentials: true
         });
         
@@ -108,7 +108,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/logout', {}, {
+      const response = await axios.post('https://video-generator-service-lzshkotpba-uc.a.run.app/logout', {}, {
         withCredentials: true
       });
       
@@ -134,7 +134,7 @@ export const AuthProvider = ({ children }) => {
 
   const request = async(details) => {
     try {
-      const response = await axios.post('http://localhost:5000/makerequest',
+      const response = await axios.post('https://video-generator-service-lzshkotpba-uc.a.run.app/makerequest',
         details,
         {withCredentials: true}
       );
