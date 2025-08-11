@@ -81,7 +81,8 @@ if not app.secret_key:
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=5)
 app.config['SESSION_PERMANENT'] = True
 
-
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+app.config['SESSION_COOKIE_SECURE'] = True
 # Note: For Gmail API to work, you need to:
 # 1. Enable Gmail API in Google Cloud Console
 # 2. Create a service account with domain-wide delegation
