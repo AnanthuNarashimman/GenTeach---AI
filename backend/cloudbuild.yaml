@@ -41,7 +41,7 @@ steps:
 images:
   - 'gcr.io/${PROJECT_ID}/video-generator:${SHORT_SHA}'
 
-# ADD THIS NEW SECTION AT THE END 
+# ADD THIS NEW SECTION AT THE END.
 # This option explicitly sets the logging mode to solve the permission error.
 options:
   logging: CLOUD_LOGGING_ONLY
