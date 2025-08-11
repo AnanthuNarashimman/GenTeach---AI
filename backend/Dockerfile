@@ -29,6 +29,17 @@ RUN apt-get update && apt-get install -y \
 # default security policy blocks many operations. We need to modify it.
 RUN sed -i 's/<policy domain="path" rights="none" pattern="@\*"/<policy domain="path" rights="read|write" pattern="@*"/' /etc/ImageMagick-6/policy.xml
 
+# === Stage 3.6: Install System Fonts ===
+# MoviePy needs fonts for text generation. Install common fonts.
+RUN apt-get update && apt-get install -y \
+    fonts-liberation \
+    fonts-dejavu-core \
+    fontconfig \
+    --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/* && \
+    fc-cache -fv
+
+
 # === Stage 4: Install Python Dependencies ===
 # First, copy only the requirements.txt file. This is a key Docker optimization.
 # If this file doesn't change, Docker can reuse the cached layer from a previous
