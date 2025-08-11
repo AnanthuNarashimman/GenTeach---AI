@@ -81,9 +81,9 @@ export const AuthProvider = ({ children }) => {
         await new Promise(resolve => setTimeout(resolve, 500));
 
 
-        const profileResponse = await axios.get('https://video-generator-service-lzshkotpba-uc.a.run.app/profile_fetch', {
-          withCredentials: true
-        });
+        const profileResponse = await axios.get('https://video-generator-service-lzshkotpba-uc.a.run.app/profile_fetch', 
+          {withCredentials: true}
+        );
         
         setIsAuthenticated(true);
         setUser({

@@ -1946,7 +1946,6 @@ def login():
     user_data = user_doc.to_dict()
 
     stored_password = user_data.get("password", "")
-    print(stored_password)
 
     
 
@@ -1962,6 +1961,8 @@ def login():
     session['user_mail'] = user_data.get("user_mail")
     session.modified = True
     session.permanent = True
+
+    print(session.get('user_id'))
 
     return jsonify({"message": "Authentication Success!", "logged": True}), 200
 
