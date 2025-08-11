@@ -38,7 +38,7 @@ function VideoGallery() {
   const fetchVideos = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/list_video', {
+      const response = await fetch('https://video-generator-service-lzshkotpba-uc.a.run.app/list_video', {
         credentials: 'include'
       });
 
@@ -52,7 +52,7 @@ function VideoGallery() {
       // Fix video URLs to point to Flask server
       const fixedVideoData = videoData.map(video => ({
         ...video,
-        url: video.url.startsWith('http') ? video.url : `http://localhost:5000${video.url}`
+        url: video.url.startsWith('http') ? video.url : `https://video-generator-service-lzshkotpba-uc.a.run.app${video.url}`
       }));
 
       console.log('Fixed video URLs:', fixedVideoData);
@@ -95,7 +95,7 @@ function VideoGallery() {
     try {
       console.log('Deleting video:', videoToDelete.filename);
       
-      const response = await fetch('http://localhost:5000/delete_video', {
+      const response = await fetch('https://video-generator-service-lzshkotpba-uc.a.run.app/delete_video', {
         method: 'POST',
         credentials: 'include',
         headers: {

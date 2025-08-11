@@ -98,7 +98,7 @@ function AudioGallery() {
   const fetchAudios = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/list_audio', {
+      const response = await fetch('https://video-generator-service-lzshkotpba-uc.a.run.app/list_audio', {
         credentials: 'include'
       });
       
@@ -160,7 +160,7 @@ function AudioGallery() {
     try {
       console.log('Downloading audio:', audio.url);
       
-      const response = await fetch('http://localhost:5000/download_audio', {
+      const response = await fetch('https://video-generator-service-lzshkotpba-uc.a.run.app/download_audio', {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -221,7 +221,7 @@ function AudioGallery() {
     try {
       console.log('Deleting audio:', audioToDelete.filename);
       
-      const response = await fetch('http://localhost:5000/delete_audio', {
+      const response = await fetch('https://video-generator-service-lzshkotpba-uc.a.run.app/delete_audio', {
         method: 'POST',
         credentials: 'include',
         headers: {

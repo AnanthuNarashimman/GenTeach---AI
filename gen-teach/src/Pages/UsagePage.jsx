@@ -24,7 +24,7 @@ function UsagePage() {
     const fetchUsageData = async () => {
         try {
             setLoading(true);
-            const response = await fetch('http://localhost:5000/get_usage_data', {
+            const response = await fetch('https://video-generator-service-lzshkotpba-uc.a.run.app/get_usage_data', {
                 credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',

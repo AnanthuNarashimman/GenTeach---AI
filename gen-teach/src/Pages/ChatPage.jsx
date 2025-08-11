@@ -16,7 +16,7 @@ function ChatPage() {
 
     async function sendMessage(messageText = inputText) {
         try {
-            const response = await axios.post('http://localhost:5000/chat', {'message': messageText},
+            const response = await axios.post('https://video-generator-service-lzshkotpba-uc.a.run.app/chat', {'message': messageText},
                 {withCredentials: true}
             );
             console.log(response.data);
@@ -340,7 +340,7 @@ function ChatPage() {
             setShowCloseModal(false);
             
             // Clear backend session with error handling
-            axios.get('http://localhost:5000/sessionclear', {
+            axios.get('https://video-generator-service-lzshkotpba-uc.a.run.app/sessionclear', {
                 withCredentials: true,
                 headers: {
                     'Content-Type': 'application/json',

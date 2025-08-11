@@ -44,7 +44,7 @@ const ApprovalPage = () => {
   const validateApprovalToken = async () => {
   try {
     setLoading(true);
-    const response = await axios.get(`http://localhost:5000/approve/${approvalToken}`, {
+    const response = await axios.get(`https://video-generator-service-lzshkotpba-uc.a.run.app/approve/${approvalToken}`, {
       withCredentials: true
     });
     
@@ -104,7 +104,7 @@ const ApprovalPage = () => {
     
     try {
       setSubmitting(true);
-      const response = await fetch(`http://localhost:5000/approve/${approvalToken}/confirm`, {
+      const response = await fetch(`https://video-generator-service-lzshkotpba-uc.a.run.app/approve/${approvalToken}/confirm`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -24,7 +24,7 @@ function ScriptGallery() {
         try {
             setError(null);
             console.log('Fetching scripts...');
-            const response = await fetch('http://localhost:5000/list_script', {
+            const response = await fetch('https://video-generator-service-lzshkotpba-uc.a.run.app/list_script', {
                 credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
@@ -61,7 +61,7 @@ function ScriptGallery() {
         try {
             console.log('Fetching script content via backend:', script.url);
             
-            const response = await fetch('http://localhost:5000/get_script_content', {
+            const response = await fetch('https://video-generator-service-lzshkotpba-uc.a.run.app/get_script_content', {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
@@ -98,7 +98,7 @@ function ScriptGallery() {
     try {
             console.log('Downloading script:', script.url);
             
-            const response = await fetch('http://localhost:5000/download_script', {
+            const response = await fetch('https://video-generator-service-lzshkotpba-uc.a.run.app/download_script', {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
@@ -157,7 +157,7 @@ function ScriptGallery() {
         try {
             console.log('Deleting script:', scriptToDelete.filename);
             
-            const response = await fetch('http://localhost:5000/delete_script', {
+            const response = await fetch('https://video-generator-service-lzshkotpba-uc.a.run.app/delete_script', {
                 method: 'POST',
                 credentials: 'include',
                 headers: {

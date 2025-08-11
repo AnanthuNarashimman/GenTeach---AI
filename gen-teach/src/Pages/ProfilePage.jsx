@@ -36,7 +36,7 @@ function ProfilePage() {
   async function fetchProfile() {
     try {
       // Fetch user profile data
-      const profileResponse = await axios.get("http://localhost:5000/profile_fetch",
+      const profileResponse = await axios.get("https://video-generator-service-lzshkotpba-uc.a.run.app/profile_fetch",
         { withCredentials: true }
       )
       console.log(profileResponse);
@@ -44,7 +44,7 @@ function ProfilePage() {
       const user_mail = profileResponse.data.user_mail;
       
       // Fetch usage data for real statistics
-      const usageResponse = await axios.get("http://localhost:5000/get_usage_data",
+      const usageResponse = await axios.get("https://video-generator-service-lzshkotpba-uc.a.run.app/get_usage_data",
         { withCredentials: true }
       )
       console.log(usageResponse);
@@ -96,7 +96,7 @@ function ProfilePage() {
     if (isEditingName) {
       if (userProfile.username != editName) {
         try {
-          const response = await axios.post('http://localhost:5000/update_profile_name',
+          const response = await axios.post('https://video-generator-service-lzshkotpba-uc.a.run.app/update_profile_name',
             { "new_name": editName },
             { withCredentials: true }
           )
@@ -144,7 +144,7 @@ function ProfilePage() {
       }
 
       try {
-        const response = await axios.post('http://localhost:5000/update_password', {
+        const response = await axios.post('https://video-generator-service-lzshkotpba-uc.a.run.app/update_password', {
           "old_password": passwordData.currentPassword,
           "new_password": passwordData.newPassword
         },

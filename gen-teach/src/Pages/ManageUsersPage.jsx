@@ -83,7 +83,7 @@ const ManageUsersPage = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('http://localhost:5000/admin/users', {
+      const response = await fetch('https://video-generator-service-lzshkotpba-uc.a.run.app/admin/users', {
         credentials: 'include'
       });
       
@@ -103,7 +103,7 @@ const ManageUsersPage = () => {
 
   const fetchRequests = async () => {
     try {
-      const response = await fetch('http://localhost:5000/admin/requests', {
+      const response = await fetch('https://video-generator-service-lzshkotpba-uc.a.run.app/admin/requests', {
         credentials: 'include'
       });
       
@@ -163,7 +163,7 @@ const ManageUsersPage = () => {
     
     try {
       setDeletingUser(userToDelete.id);
-      const response = await fetch('http://localhost:5000/admin/delete_user', {
+      const response = await fetch('https://video-generator-service-lzshkotpba-uc.a.run.app/admin/delete_user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -199,7 +199,7 @@ const ManageUsersPage = () => {
   const handleRejectRequest = async (request) => {
     try {
       setProcessingRequest(request.id);
-      const response = await fetch('http://localhost:5000/admin/reject_user', {
+      const response = await fetch('https://video-generator-service-lzshkotpba-uc.a.run.app/admin/reject_user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -227,7 +227,7 @@ const ManageUsersPage = () => {
   const handleApproveRequest = async (request) => {
     try {
       setProcessingRequest(request.id);
-      const response = await fetch('http://localhost:5000/admin/approve_user', {
+      const response = await fetch('https://video-generator-service-lzshkotpba-uc.a.run.app/admin/approve_user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
