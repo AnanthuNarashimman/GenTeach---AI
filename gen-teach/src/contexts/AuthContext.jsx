@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
       });
       
       if (sessionResponse.data.authenticated) {
-        // Session is valid, get user profile
+        // Then fetch user profile
         const profileResponse = await axios.get('https://video-generator-service-lzshkotpba-uc.a.run.app/profile_fetch', {
           withCredentials: true
         });
@@ -77,6 +77,10 @@ export const AuthProvider = ({ children }) => {
       });
       
       if (response.data.logged) {
+
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+
         const profileResponse = await axios.get('https://video-generator-service-lzshkotpba-uc.a.run.app/profile_fetch', {
           withCredentials: true
         });
