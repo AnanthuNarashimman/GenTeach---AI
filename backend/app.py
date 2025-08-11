@@ -949,7 +949,7 @@ def generate_lecture_video(audio_path, image_path, script_path, output_path,
 
             logger.info(f"Paragraph {i+1} ('{para_text[:50]}...') will display for approx. {paragraph_duration:.2f} seconds.")
 
-            final_font_arg = font_path_for_clip if font_path_for_clip is not None else 'sans'
+            final_font_arg = font_path_for_clip if font_path_for_clip is not None else 'DejaVu-Sans'
 
             try:
                 txt_clip = TextClip(
@@ -1115,7 +1115,7 @@ def generate_video_from_script(script_content):
         logger.info(f"Using custom robot font for video text: {FONT_PATH_FOR_CLIP}")
     else:
         logger.warning(f"Custom robot font not found at {CUSTOM_ROBOT_FONT_PATH}. Falling back to generic sans font.")
-        FONT_PATH_FOR_CLIP = 'sans'
+        FONT_PATH_FOR_CLIP = 'DejaVu-Sans'
 
     try:
         generate_lecture_video(
