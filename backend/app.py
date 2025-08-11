@@ -2654,11 +2654,14 @@ def cleanup_temp_files():
         logger.error(f"Error cleaning up temporary files: {e}")
 
 if __name__ == '__main__':
+    import os
+    
     os.makedirs(TEMP_FOLDER, exist_ok=True) 
     os.makedirs(FONTS_FOLDER, exist_ok=True) 
     os.makedirs(PATTERNS_FOLDER, exist_ok=True)
 
     try:
-        app.run(debug=True)
+        port = int(os.environ.get('PORT', 8080))
+        app.run(host='0.0.0.0', port=port, debug=False)
     finally:
         cleanup_temp_files()

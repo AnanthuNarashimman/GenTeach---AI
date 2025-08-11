@@ -51,4 +51,4 @@ COPY . .
 #                       This is necessary for your long-running video generation tasks.
 # app:app             : Tells Gunicorn to look for a file named app.py and find the
 #                       Flask application object named 'app' inside it.
-CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 3600 app:app
+CMD exec gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 3600 app:app
