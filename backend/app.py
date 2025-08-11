@@ -77,12 +77,13 @@ if not app.secret_key:
     logger.warning("         Please set FLASK_SECRET_KEY in your .env file for production security.")
     app.secret_key = "a_fallback_secret_key_for_dev_only_change_this_in_production_12345"
 
-# Session configuration - Make sessions permanent for 5 days
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=5)
-app.config['SESSION_PERMANENT'] = True
+# Session configuration - Configure session settings
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)  # Reduced to 24 hours
+app.config['SESSION_PERMANENT'] = False  # Don't make all sessions permanent by default
 
 app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent XSS attacks
 # Note: For Gmail API to work, you need to:
 # 1. Enable Gmail API in Google Cloud Console
 # 2. Create a service account with domain-wide delegation
@@ -92,11 +93,10 @@ app.config['SESSION_COOKIE_SECURE'] = True
 # Setting up CORS
 CORS(app,
      supports_credentials=True,
-     origins=["http://localhost:5173"],
+     origins=["http://localhost:5173", "https://gen-teach-ai-kd7v.vercel.app"],
      allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-     expose_headers=["Content-Type"],
-     resources={r"/*": {"origins": "https://gen-teach-ai-kd7v.vercel.app"}})
+     expose_headers=["Content-Type"])
 
 # Gemini API Configuration
 gemini_api_key = os.getenv('GEMINI_API_KEY').strip()
@@ -149,6 +149,35 @@ os.makedirs(PATTERNS_FOLDER, exist_ok=True)
 # Setup Google Cloud credentials
 google_credentials_path = setup_google_credentials()
 
+# Session management middleware
+@app.before_request
+def before_request():
+    """Handle session management before each request"""
+    # List of endpoints that don't require authentication
+    public_endpoints = [
+        'login', 'register', 'request_account', 'verify_approval_token',
+        'static', 'sessionclear'
+    ]
+
+    # Skip session checks for OPTIONS requests and public endpoints
+    if request.method == 'OPTIONS' or request.endpoint in public_endpoints:
+        return
+
+    # For authenticated endpoints, check if user is logged in
+    if request.endpoint and 'admin' not in request.endpoint:
+        # Only create/maintain session if user is actually logged in
+        if 'user_id' not in session and request.endpoint not in ['check_session']:
+            # Don't automatically create sessions for unauthenticated users
+            pass
+
+@app.after_request
+def after_request(response):
+    """Handle session cleanup after each request"""
+    # If session is empty and not permanent, ensure it's properly cleaned up
+    if not session and not session.permanent:
+        response.set_cookie('session', '', expires=0, secure=True, httponly=True, samesite='None')
+    return response
+
 
 
 
@@ -184,29 +213,39 @@ def upload_to_firebase(local_filepath, destination_folder, filename, user_id):
 # States: 'IDLE', 'AWAITING_SUBTOPIC_SELECTION', 'AWAITING_CONFIRMATION','SCRIPT_GENERATED', 'AUDIO_GENERATED', 'VIDEO_GENERATED', 'BOTH_GENERATED', 'IMAGES_GENERATED'
 
 
-# Route to clear session. Used to clear current state, and other information about currently generated contsnts from session while discarding a chat, enabling users to start a new fresh chat.
+# Route to clear session. Used to clear current state, and other information about currently generated contents from session while discarding a chat, enabling users to start a new fresh chat.
 @app.route('/sessionclear', methods=['GET', 'OPTIONS'])
 def sessionclear():
     if request.method == 'OPTIONS':
         response = jsonify({})
-        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173')
+        response.headers.add('Access-Control-Allow-Origin', 'https://gen-teach-ai-kd7v.vercel.app')
         response.headers.add('Access-Control-Allow-Methods', 'GET, OPTIONS')
         response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
         response.headers.add('Access-Control-Allow-Credentials', 'true')
         return response
-    
+
+    # Only clear conversation-related session data, keep user authentication
+    user_id = session.get('user_id')
+
+    # Clear conversation state
     session['conversation_state'] = "IDLE"
     session['context_topic'] = ''
-    
+
     # Safely remove session keys if they exist
-    session_keys_to_remove = ['image_url', 'audio_url', 'video_url']
+    session_keys_to_remove = [
+        'image_url', 'audio_url', 'video_url', 'video_script',
+        'video_summary', 'quiz_content', 'final_topic',
+        'suggested_subtopics'
+    ]
     for key in session_keys_to_remove:
         if key in session:
             del session[key]
-    
-    logger.info("Session cleared!")
+
+    session.modified = True
+    logger.info(f"Conversation session cleared for user: {user_id}")
+
     response = jsonify({"message": "Session cleared!"})
-    response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173')
+    response.headers.add('Access-Control-Allow-Origin', 'https://gen-teach-ai-kd7v.vercel.app')
     response.headers.add('Access-Control-Allow-Credentials', 'true')
     return response
 
@@ -1949,22 +1988,23 @@ def login():
 
     stored_password = user_data.get("password", "")
 
-    
-
     if not bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8')):
         print("Invalid credentials")
         return jsonify({"message": "Invalid credentials", "logged": False})
-    
 
     print("Login successful")
 
+    # Clear any existing session data first
+    session.clear()
+
+    # Set new session data
     session['user_name'] = user_data.get("user_name")
     session['user_id'] = user_data.get("user_id")
     session['user_mail'] = user_data.get("user_mail")
+    session.permanent = True  # Only make this specific session permanent
     session.modified = True
-    session.permanent = True
 
-    print(session.get('user_id'))
+    print(f"User logged in with ID: {session.get('user_id')}")
 
     return jsonify({"message": "Authentication Success!", "logged": True}), 200
 
@@ -2048,27 +2088,34 @@ def logout():
     """Logout endpoint that clears all session data"""
     if request.method == 'OPTIONS':
         response = jsonify({})
-        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173')
+        response.headers.add('Access-Control-Allow-Origin', 'https://gen-teach-ai-kd7v.vercel.app')
         response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
         response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
         response.headers.add('Access-Control-Allow-Credentials', 'true')
         return response
-    
+
     try:
+        user_id = session.get('user_id')
+        logger.info(f"User {user_id} logging out")
+
         # Clear all session data
         session.clear()
-        print(session)
+        session.permanent = False  # Ensure session is not permanent after logout
         session.modified = True
-        
-        logger.info("User logged out successfully")
+
+        logger.info("User logged out successfully - session cleared")
         response = jsonify({"message": "Logged out successfully", "success": True})
-        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173')
+        response.headers.add('Access-Control-Allow-Origin', 'https://gen-teach-ai-kd7v.vercel.app')
         response.headers.add('Access-Control-Allow-Credentials', 'true')
+
+        # Set cookie to expire immediately to ensure cleanup
+        response.set_cookie('session', '', expires=0, secure=True, httponly=True, samesite='None')
+
         return response, 200
     except Exception as e:
         logger.error(f"Error during logout: {e}")
         response = jsonify({"message": "Error during logout", "success": False})
-        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173')
+        response.headers.add('Access-Control-Allow-Origin', 'https://gen-teach-ai-kd7v.vercel.app')
         response.headers.add('Access-Control-Allow-Credentials', 'true')
         return response, 500
 
@@ -2080,8 +2127,27 @@ def check_session():
         user_id = session.get('user_id')
         user_email = session.get('user_mail')
         user_name = session.get('user_name')
-        
-        if user_id and user_email:
+
+        # Verify that all required session data is present
+        if user_id and user_email and user_name:
+            # Optionally verify user still exists in database
+            try:
+                user_query = userCollection.where('user_id', '==', user_id).stream()
+                user_doc = next(user_query, None)
+
+                if user_doc is None:
+                    # User no longer exists, clear session
+                    session.clear()
+                    session.modified = True
+                    return jsonify({
+                        'authenticated': False,
+                        'message': 'User account no longer exists'
+                    }), 401
+
+            except Exception as db_error:
+                logger.warning(f"Could not verify user in database: {db_error}")
+                # Continue with session check even if DB verification fails
+
             return jsonify({
                 'authenticated': True,
                 'user_id': user_id,
@@ -2089,14 +2155,22 @@ def check_session():
                 'user_name': user_name
             }), 200
         else:
+            # Clear any partial session data
+            if any(session.get(key) for key in ['user_id', 'user_mail', 'user_name']):
+                session.clear()
+                session.modified = True
+
             return jsonify({
                 'authenticated': False,
                 'message': 'No active session'
             }), 401
-            
+
     except Exception as e:
         logger.error(f"Error checking session: {e}")
-        return jsonify({'authenticated': False, 'error': str(e)}), 500
+        # Clear session on error to prevent issues
+        session.clear()
+        session.modified = True
+        return jsonify({'authenticated': False, 'error': 'Session check failed'}), 500
 
 @app.route('/admin/check_admin', methods=['GET'])
 def check_admin():
