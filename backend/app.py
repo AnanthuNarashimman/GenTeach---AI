@@ -2444,7 +2444,7 @@ def approve_user():
         logger.info("Request status updated to approved")
         
         # Generate Gmail compose URL
-        activation_link = f"http://localhost:5173/approve/{approval_token}"
+        activation_link = f"https://gen-teach-ai-kd7v.vercel.app/approve/{approval_token}"
         
         subject = "🎉 Welcome to GenTeach - Your Account Has Been Approved!"
         body = f"""Dear {request_info.get('name', 'New GenTeach User')},
