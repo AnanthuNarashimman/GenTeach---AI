@@ -1039,12 +1039,15 @@ def generate_video_from_script(script_content):
         logger.error("User ID not found in session for video generation.")
         raise ValueError("User must be logged in to generate video.")
     
+    # Check for ongoing generation
     ongoing_generation = session.get('video_generation_in_progress', False)
     if ongoing_generation:
-        logger.error("Video generation already in progress for this user.")    
-        return False
-    
+        logger.error("Video generation already in progress for this user.")
+        raise ValueError("Video generation already in progress")
+
+    # Set the lock
     session["video_generation_in_progress"] = True
+    session.modified = True
 
     audio_url = session.get('audio_url')
     image_url = session.get('image_url')
@@ -1158,14 +1161,16 @@ def generate_video_from_script(script_content):
         logger.error(f"Error during main video generation call: {e}", exc_info=True)
         raise
     finally:
+        # Clear the generation lock
+        session["video_generation_in_progress"] = False
+        session.modified = True
+        logger.info("Cleared video generation lock")
+
         # Clean up temporary files
         for temp_file in [script_filepath, audio_filepath, image_filepath, output_video_filepath]:
             if temp_file and os.path.exists(temp_file):
                 os.remove(temp_file)
                 logger.info(f"Cleaned up temporary file: {temp_file}")
-
-        session["video_generation_in_progress"] = True
-        session.modified = True
         logger.info("--- Finished generate_video_from_script function ---")
 
 
@@ -1178,7 +1183,8 @@ def generate_video_from_script(script_content):
 # 4) 
 @app.route('/chat', methods=['POST'])
 def chat():
-    if 'user_id' not in session:
+    
+    if "user_id" not in session:
         return jsonify({
             "reply": "🔒 Authentication required! Please log in to start chatting with me. I'm here to help you create amazing educational content once you're authenticated.",
             "action": "authentication_required"
@@ -1485,15 +1491,17 @@ def chat():
                         session['audio_url'] = audio_url
                         logger.info("Generated audio before video generation.")
 
-                    video_url = generate_video_from_script(script_to_process) # Now calls the full generation
-                    if video_url is False:
-                        return jsonify({
-                            "reply": " Multiple Generation Requests! Please wait till the current generation is completed before starting another.",
-                            "action": "video_generation_traffic"
-                        }), 200
-
-        
-                    session['video_url'] = video_url
+                    try:
+                        video_url = generate_video_from_script(script_to_process) # Now calls the full generation
+                        session['video_url'] = video_url
+                    except ValueError as ve:
+                        if "already in progress" in str(ve):
+                            return jsonify({
+                                "reply": "🚧 Multiple Generation Requests! Please wait till the current generation is completed before starting another.",
+                                "action": "video_generation_traffic"
+                            }), 200
+                        else:
+                            raise  # Re-raise other ValueError exceptions
                     success_message = "Video generated successfully!"
                     action_type = "video_ready"
                     next_state = 'VIDEO_GENERATED'
@@ -1535,8 +1543,17 @@ def chat():
                         logger.warning("Could not generate image for 'generate both' due to missing topic/project ID. Attempting video generation without it, which will use a fallback image.")
 
                     # Generate video
-                    video_url = generate_video_from_script(script_to_process) # This will handle missing image with fallback
-                    session['video_url'] = video_url
+                    try:
+                        video_url = generate_video_from_script(script_to_process) # This will handle missing image with fallback
+                        session['video_url'] = video_url
+                    except ValueError as ve:
+                        if "already in progress" in str(ve):
+                            return jsonify({
+                                "reply": "🚧 Multiple Generation Requests! Please wait till the current generation is completed before starting another.",
+                                "action": "video_generation_traffic"
+                            }), 200
+                        else:
+                            raise  # Re-raise other ValueError exceptions
 
                     success_message = "Audio, video, and image generated successfully!"
                     action_type = "all_ready"
@@ -1606,8 +1623,19 @@ def chat():
                         else:
                             logger.warning("Could not generate image before video due to missing topic/project ID. Video generation will use a fallback image.")
 
-                    video_url = generate_video_from_script(script_to_process)
-                    session['video_url'] = video_url
+                    try:
+                        video_url = generate_video_from_script(script_to_process)
+                        session['video_url'] = video_url
+                    except ValueError as ve:
+                        if "already in progress" in str(ve):
+                            response_data.update({
+                                "reply": "🚧 Multiple Generation Requests! Please wait till the current generation is completed before starting another.",
+                                "action": "video_generation_traffic"
+                            })
+                            return jsonify(response_data), 200
+                        else:
+                            raise  # Re-raise other ValueError exceptions
+
                     response_data.update({
                         "reply": "Video generated successfully!",
                         "action": "video_ready",
@@ -1770,8 +1798,19 @@ def chat():
                         session['audio_url'] = audio_url
 
 
-                    video_url = generate_video_from_script(script_to_process)
-                    session['video_url'] = video_url
+                    try:
+                        video_url = generate_video_from_script(script_to_process)
+                        session['video_url'] = video_url
+                    except ValueError as ve:
+                        if "already in progress" in str(ve):
+                            response_data.update({
+                                "reply": "🚧 Multiple Generation Requests! Please wait till the current generation is completed before starting another.",
+                                "action": "video_generation_traffic"
+                            })
+                            return jsonify(response_data), 200
+                        else:
+                            raise  # Re-raise other ValueError exceptions
+
                     response_data.update({
                         "reply": "Video generated successfully!",
                         "action": "video_ready",
@@ -1815,8 +1854,19 @@ def chat():
                         logger.warning("Audio not found in session for video re-generation. Attempting to generate it first.")
                         audio_url = generate_audio_from_script(script_to_process)
                         session['audio_url'] = audio_url
-                    video_url = generate_video_from_script(script_to_process)
-                    session['video_url'] = video_url
+                    try:
+                        video_url = generate_video_from_script(script_to_process)
+                        session['video_url'] = video_url
+                    except ValueError as ve:
+                        if "already in progress" in str(ve):
+                            response_data = {
+                                "reply": "🚧 Multiple Generation Requests! Please wait till the current generation is completed before starting another.",
+                                "action": "video_generation_traffic"
+                            }
+                            return jsonify(response_data), 200
+                        else:
+                            raise  # Re-raise other ValueError exceptions
+
                     success_message = "Video re-generated successfully!"
                     action_type = "video_ready"
                 elif user_input.lower() == 'generate images':
@@ -1843,8 +1893,18 @@ def chat():
                     else:
                         logger.warning("Could not re-generate image for 'generate both' due to missing topic/project ID. Attempting video generation without it, which will use a fallback image.")
 
-                    video_url = generate_video_from_script(script_to_process)
-                    session['video_url'] = video_url
+                    try:
+                        video_url = generate_video_from_script(script_to_process)
+                        session['video_url'] = video_url
+                    except ValueError as ve:
+                        if "already in progress" in str(ve):
+                            response_data = {
+                                "reply": "🚧 Multiple Generation Requests! Please wait till the current generation is completed before starting another.",
+                                "action": "video_generation_traffic"
+                            }
+                            return jsonify(response_data), 200
+                        else:
+                            raise  # Re-raise other ValueError exceptions
 
                     success_message = "Audio, video, and image re-generated successfully!"
                     action_type = "all_ready"
