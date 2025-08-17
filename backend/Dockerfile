@@ -27,8 +27,14 @@ RUN apt-get update && apt-get install -y \
 # === Stage 3.5: Configure ImageMagick Security Policy ===
 # MoviePy requires ImageMagick to process text and images, but ImageMagick's
 # default security policy blocks many operations. We need to modify it.
-RUN sed -i 's/<policy domain="path" rights="none" pattern="@\*"/<policy domain="path" rights="read|write" pattern="@*"/' /etc/ImageMagick-6/policy.xml
+RUN policy_file=$(find /etc -name policy.xml | head -n 1) && \
+    if [ -n "$policy_file" ]; then \
+        sed -i 's/<policy domain="path" rights="none" pattern="@\*"/<policy domain="path" rights="read|write" pattern="@\*"/' "$policy_file"; \
+    else \
+        echo "Warning: policy.xml not found, skipping ImageMagick policy update"; \
+    fi
 
+    
 # === Stage 3.6: Install System Fonts ===
 # MoviePy needs fonts for text generation. Install common fonts.
 RUN apt-get update && apt-get install -y \
