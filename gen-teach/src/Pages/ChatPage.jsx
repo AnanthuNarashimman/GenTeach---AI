@@ -342,6 +342,7 @@ function ChatPage() {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleSendMessage();
+            // Not sure this works!
         }
     };
 
