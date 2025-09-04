@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Play, Brain, FileText, HelpCircle, Zap, Target, Video, BookOpen, Wrench, Mail } from 'lucide-react';
 import '../Styles/PageStyles/LandingPage.css';
 
 const LandingPage = () => {
     const [isHovered, setIsHovered] = useState(null);
+    const navigate = useNavigate();
 
     return (
         <div className="landing-container">
@@ -15,7 +17,7 @@ const LandingPage = () => {
                 <div className="hero-content">
                     <div className="hero-badge">
                         <Wrench size={16} />
-                        <span>Under Development - Coming Soon</span>
+                        <span>Under Development - Still Improving</span>
                     </div>
 
                     <h1 className="hero-title">
@@ -29,13 +31,9 @@ const LandingPage = () => {
                     </p>
 
                     <div className="hero-buttons">
-                        <button className="btn-primary" disabled>
+                        <button className="btn-primary" onClick={() => {navigate('/auth')}}>
                             <Play size={20} />
-                            Coming Soon
-                        </button>
-                        <button className="btn-secondary" disabled>
-                            <Video size={20} />
-                            Watch Demo
+                            Give a Try
                         </button>
                     </div>
 
