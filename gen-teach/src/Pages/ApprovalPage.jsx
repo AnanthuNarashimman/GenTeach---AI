@@ -185,7 +185,7 @@ const ApprovalPage = () => {
           <h2>Account Already Created</h2>
           <p>This approval token has already been used to create an account. You can now log in with your credentials.</p>
           <div className="completed-actions">
-            <button onClick={() => navigate('/login')} className="login-btn">
+            <button onClick={() => navigate('/auth')} className="login-btn">
               Go to Login
             </button>
           </div>
