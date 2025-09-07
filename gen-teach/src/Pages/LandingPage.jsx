@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Play, Brain, FileText, HelpCircle, Zap, Target, Video, BookOpen, Wrench, Mail } from 'lucide-react';
 import '../Styles/PageStyles/LandingPage.css';
 
+// Comment to retrigger deployment
 const LandingPage = () => {
     const [isHovered, setIsHovered] = useState(null);
     const navigate = useNavigate();
