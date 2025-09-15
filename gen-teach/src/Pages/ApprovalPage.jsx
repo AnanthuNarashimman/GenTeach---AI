@@ -18,6 +18,7 @@ import '../Styles/PageStyles/ApprovalPage.css';
 
 
 // Comment to trigger deployment
+
 const ApprovalPage = () => {
   const { approvalToken } = useParams();
   const navigate = useNavigate();
