@@ -1,32 +1,27 @@
-# Dockerfile for GenTeach AI Video Generator
+# Dockerfile for GenTeach AI Video Generator (Multi-Stage Build)
 
-# === Stage 1: Base Image ===
-# We start with an official, slim version of Python. This provides a good balance
-# between size and having the necessary tools.
-FROM python:3.10-slim
+# ====================================================================
+# Stage 1: Builder - Installs all dependencies and prepares assets
+# ====================================================================
+FROM python:3.10-slim as builder
 
-# === Stage 2: Set Up the Environment ===
-# Set the working directory inside the container to /app. All subsequent commands
-# will run from this directory.
+# --- Set Up the Environment ---
 WORKDIR /app
-
-# Set an environment variable to prevent Python from buffering output.
-# This is crucial for seeing logs in real-time in Google Cloud Run.
 ENV PYTHONUNBUFFERED True
 
-# === Stage 3: Install System-Level Dependencies ===
-# Your app.py uses MoviePy for video creation, which requires FFmpeg for video
-# encoding/decoding and ImageMagick for creating text clips and other effects.
-# This command updates the package list and installs them.
+# --- Install System-Level Dependencies ---
+# Install ffmpeg, imagemagick, and fonts needed for MoviePy.
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     imagemagick \
+    fonts-liberation \
+    fonts-dejavu-core \
+    fontconfig \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
-# === Stage 3.5: Configure ImageMagick Security Policy ===
-# MoviePy requires ImageMagick to process text and images, but ImageMagick's
-# default security policy blocks many operations. We need to modify it.
+# --- Configure ImageMagick Security Policy ---
+# Safely find and modify the policy file to allow MoviePy operations.
 RUN policy_file=$(find /etc -name policy.xml | head -n 1) && \
     if [ -n "$policy_file" ]; then \
         sed -i 's/<policy domain="path" rights="none" pattern="@\*"/<policy domain="path" rights="read|write" pattern="@\*"/' "$policy_file"; \
@@ -34,43 +29,39 @@ RUN policy_file=$(find /etc -name policy.xml | head -n 1) && \
         echo "Warning: policy.xml not found, skipping ImageMagick policy update"; \
     fi
 
-    
-# === Stage 3.6: Install System Fonts ===
-# MoviePy needs fonts for text generation. Install common fonts.
-RUN apt-get update && apt-get install -y \
-    fonts-liberation \
-    fonts-dejavu-core \
-    fontconfig \
-    --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/* && \
-    fc-cache -fv
-
-
-# === Stage 4: Install Python Dependencies ===
-# First, copy only the requirements.txt file. This is a key Docker optimization.
-# If this file doesn't change, Docker can reuse the cached layer from a previous
-# build, making future builds much faster.
+# --- Pre-build Python Dependencies ---
+# Copy requirements.txt and build Python packages into "wheels" for faster
+# installation in the final stage. This is a key optimization.
 COPY requirements.txt .
+RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 
-# Now, install all the Python libraries specified in your requirements file.
-RUN pip install --no-cache-dir -r requirements.txt
 
-# === Stage 5: Copy Your Application Code ===
-# Copy the rest of your application's files into the /app directory in the container.
-# This includes your app.py, the 'fonts' folder, and the 'static' folder.
-# The first '.' refers to the source directory (your backend/ folder on your machine).
-# The second '.' refers to the destination directory inside the container (/app).
+# ==================================================================
+# Stage 2: Final Production Image - Lean and Optimized
+# ==================================================================
+FROM python:3.10-slim
+
+# --- Set Up the Environment ---
+WORKDIR /app
+ENV PYTHONUNBUFFERED True
+
+# --- Copy Necessary Assets from Builder Stage ---
+# Copy only the essential runtime files from the builder stage, leaving
+# behind all the build tools and intermediate files.
+COPY --from=builder /usr/bin/ffmpeg /usr/bin/
+COPY --from=builder /usr/bin/convert /usr/bin/
+COPY --from=builder /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu
+COPY --from=builder /etc/ImageMagick-* /etc/ImageMagick-6/
+COPY --from=builder /usr/share/fonts /usr/share/fonts
+COPY --from=builder /wheels /wheels
+
+# --- Install Python Dependencies from Wheels ---
+# Install the pre-built Python packages. This is much faster and cleaner.
+RUN pip install --no-cache /wheels/*
+
+# --- Copy Your Application Code ---
 COPY . .
 
-# === Stage 6: Define the Command to Run Your App ===
-# This is the command that will be executed when your container starts on Cloud Run.
-# We use Gunicorn, a production-grade web server, instead of Flask's built-in dev server.
-#
-# --bind :$PORT       : Binds to the port provided by Cloud Run.
-# --workers 1         : Use a single worker process.
-# --threads 8         : Handle up to 8 requests concurrently per worker.
-# --timeout 3600      : CRITICAL! Sets the request timeout to 1 hour (3600 seconds).
-#                       This is necessary for your long-running video generation tasks.
-# app:app             : Tells Gunicorn to look for a file named app.py and find the
-#                       Flask application object named 'app' inside it.
+# --- Define the Command to Run Your App ---
+# Use Gunicorn for a production-ready server with a long timeout for video tasks.
 CMD exec gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 3600 app:app
