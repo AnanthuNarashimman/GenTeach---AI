@@ -1,3 +1,5 @@
+<img width="100%" height="136" alt="Glimpse" src="https://github.com/user-attachments/assets/2c5ecf73-c5c9-4ee3-a390-6e022b3bff61" />
+
 # GenTeach AI
 
  Welcome to GenTeach, a comprehensive, AI-driven ecosystem designed to revolutionize how we approach educational content. In a digital world saturated with generic and often overly complex information, GenTeach emerges as your personal creative co-pilot, dedicated to crafting learning materials that are as unique as your curiosity.
