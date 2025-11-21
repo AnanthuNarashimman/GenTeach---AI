@@ -2,14 +2,26 @@
 
 # GenTeach AI
 
- Welcome to GenTeach, a comprehensive, AI-driven ecosystem designed to revolutionize how we approach educational content. In a digital world saturated with generic and often overly complex information, GenTeach emerges as your personal creative co-pilot, dedicated to crafting learning materials that are as unique as your curiosity.
+**Part of the Idea Series — Turning creative sparks into real learning tools**
+
+Welcome to GenTeach, a comprehensive, AI-driven ecosystem designed to revolutionize how we approach educational content. In a digital world saturated with generic and often overly complex information, GenTeach emerges as your personal creative co-pilot, dedicated to crafting learning materials that are as unique as your curiosity.
 
 This full-stack platform provides a seamless, end-to-end experience, transforming simple user prompts into a diverse suite of high-quality, tailor-made educational assets. Whether you're an educator designing a lesson plan, a student seeking a simpler explanation, or a lifelong learner exploring a new topic, GenTeach puts the power of a content studio at your fingertips. From instantly materialized video scripts and engaging interactive quizzes to clear audio summaries and complete short-form videos, our mission is to eliminate the friction of creation and empower you to build the direct, purposeful, and personalized learning content you've always searched for.
 
 ---
 
-## Table of Contents
+## The Idea Series
+GenTeach is the first completed project in my **Idea Series** — a personal collection where every wild idea gets shipped.  
+Each project starts as a spark, becomes a live repo, and evolves publicly until it’s something people actually use.
 
+Current & upcoming projects in the series:
+- **GenTeach** (you’re here) → AI-generated educational videos, scripts, audio, quizzes
+- **AlgoFlow** → Visualize & solve algorithms with flowcharts + AI (building live now)
+- More coming — follow along!
+
+---
+
+## Table of Contents
 - [About The Project](#about-the-project)
 - [Demo & Screenshots](#demo--screenshots)
 - [Key Features](#key-features)
