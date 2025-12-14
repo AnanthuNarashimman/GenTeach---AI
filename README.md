@@ -220,4 +220,4 @@ See the [open issues](https://github.com/AnanthuNarashimman/GenTeach---AI/issues
 -   **GitHub:** [`@AnanthuNarashimman`](https://github.com/AnanthuNarashimman)
 -   **Email:** `flashprojects95@gmail.com`
 
-Project Link: [GenTeach---AI](https://github.com/AnanthuNarashimman/GenTeach---AI)
+
