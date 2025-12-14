@@ -4,6 +4,7 @@ This guide will help you set up Gmail API for sending approval emails in the Gen
 
 ## Prerequisites
 
+
 1. Google Cloud Project with billing enabled
 2. Gmail account (for sending emails)
 3. Domain-wide delegation setup (if using Google Workspace)
